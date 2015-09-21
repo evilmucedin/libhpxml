@@ -19,7 +19,7 @@ Usage
 
 libhpxml provides a set of functions and structures. hpx_ctrl_t is a control structure which contains all relevant information for a XML stream. The contents of the structure are used internally by the library and should not be modified in any way. The structure is initialized with a call to hpx_init() and must be freed again with hpx_free(). Note that hpx_free() will not close the file descriptor.
 
-```
+```c
    hpx_ctrl_t *hpx_init(int fd, int len);
    void hpx_free(hpx_ctrl_t *ctl);
 ```
@@ -38,7 +38,7 @@ Note that the preprocessor macro WITH_MMAP must be defined at compile time to co
 
 While parsing an XML file libhpxml returns pointers to the elements and attributes. C strings are usually '\0'-terminated but this is not applicable here because it would require that '\0' characters are inserted after each element, resulting in huge data movement. Thus, libhpxml uses "B strings" which are hold in the bstring_t structure. The structure contains a pointer to the string and its length. Additionally, a set of function is provided to handle those strings.
 
-```
+```c
    typedef struct bstring
    {
       int len;
@@ -50,13 +50,13 @@ While parsing an XML file libhpxml returns pointers to the elements and attribut
 
 After initializing the control structure, XML elements are subsequently retrieved by repeated calls to hpx_get_elem().
 
-```
+```c
    int hpx_get_elem(hpx_ctrl_t *ctl, bstring_t *b, int *in_tag, size_t *lno);
 ```
 
 The function processes the buffer and fills out the bstring pointing to the next XML element. ctl is the pointer to control structure. in_tag is filled with either 0 or 1, either if the XML element is a tag (<...>) or if it is literal text between tags. lno is filled with the line number at which this element starts. Both, in_tag and lno may be NULL if it is not used. hpx_get_elem() returns the length of the bstring, 0 on EOF, and -1 in case of error. Such an element can now be parsed with a call to hpx_process_elem().
 
-```
+```c
    int hpx_process_elem(bstring_t b, hpx_tag_t *p);
 
    typedef struct hpx_tag
@@ -99,7 +99,7 @@ Example
 
 This example parses an XML file and outputs some stats about each XML element. You can download the example directly here.
 
-```
+```c
 #include <stdio.h>
 #include <stdlib.h>
  
@@ -146,7 +146,33 @@ int main(int argc, char *argv[])
    exit(EXIT_SUCCESS);
 }
 ```
- 
+
+C++ Wrapper
+-----------
+
+```c++
+#include <cstdio>
+#include <cstdlib>
+
+#include <iostream>
+
+#include "hpXmlWrapper.h"
+
+int main(int argc, char *argv[])
+{
+    THPXml xml;
+
+    // loop as long as XML elements are available
+    size_t count = 0;
+    while (xml.Next())
+    {
+    	printf("[%ld] type=%d, name=%.*s, nattr=%d\n", xml.GetLineNumber(), xml.GetTag()->type, xml.GetTag()->tag.len, xml.GetTag()->tag.buf, xml.GetTag()->nattr);
+    }
+
+    return 0;
+}
+
+```
 
 Bugs and Caveats
 ----------------
