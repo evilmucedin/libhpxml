@@ -1,34 +1,40 @@
+libhpxml – A High Performance XML Stream Parser
+===============================================
 
-*libhpxml – A High Performance XML Stream Parser*
-*Download*
+Download
+--------
+
 libhpxml currently is not a shared library. It is provided as a set of source files and can directly be compiled and linked into your project with GCC. The current version is available here.
 Description
 
 libhpxml is a high performance XML stream parser library written in C with a simple API. It is intended to parse XML files very speed efficient. This may be required when processing huge XML files like the OSM planet file which currently has 260GB+.
-The development goals are speed efficiency and simple memory handling to reduce the risk of memory leaks. These objectives are achieved through
-
-    avoidance of system calls (such as malloc()) as much as possible,
-    usage of (nearly) static memory buffers, and
-    avoidance of copying memory.
+The development goals are speed efficiency and simple memory handling to reduce the risk of memory leaks. These objectives are achieved through avoidance of system calls (such as malloc()) as much as possible, usage of (nearly) static memory buffers, and avoidance of copying memory.
 
 Being a stream parser, libhpxml returns in a loop one XML element after the other. It uses a result buffer which is initialized once and then reused for every element. Thus, repeated calls to malloc() and free() are omitted. The input data is read in blocks. The result buffer does not contain the data itself but just pointers to the XML elements within the input buffer. Thus, data is not copied, it is just pointed to.
-*Usage*
-*Initialization*
+
+Usage
+-----
+
+### Initialization
 
 libhpxml provides a set of functions and structures. hpx_ctrl_t is a control structure which contains all relevant information for a XML stream. The contents of the structure are used internally by the library and should not be modified in any way. The structure is initialized with a call to hpx_init() and must be freed again with hpx_free(). Note that hpx_free() will not close the file descriptor.
 
+```
    hpx_ctrl_t *hpx_init(int fd, int len);
    void hpx_free(hpx_ctrl_t *ctl);
+```
 
 The arguments to hpx_init() is a file descriptor to an open XML file and the length of the block buffer. It will initialize a hpx_ctrl_t structure and returns a pointer to it. In case of error NULL is returned and errno is set appropriately. The buffer size must be at least as large as the longest XML element in the file but it is recommended to be much larger. The larger the buffer the lesser the number of reads. If there is enough system memory available, it is safe to choose 100MB or even more.
-*Memory Mapping*
+
+### Memory Mapping
 
 Libhpxml now supports memory mapping through the system call mmap(). This is activated if hpx_init() is called with a negative len parameter. In case of memory mapping, len must be as long as the (negative value) of the total length of the XML input file. Memory mapping of files greater than 2 GB is currently just supported on 64 bit architectures (see manpage mmap(2) or POSIX manpage mmap(3), respectively).
 
 The main application for memory mapping is if libhpxml is not just used as stream parser but XML objects are kept in memory during the whole runtime. This is necessary if on-the-fly object processing is not possible. This typically is the case if XML objects are nested or they depend on each other. An example is the rendering process of OSM data.
 Keeping pointers valid (see hpx_get_elem()) is still possible without memory mapping, but it requires that the buffer is as large as the file itself because it has to pull in the whole file at once. Thus, this works just if the system has enough memory. Memory mapping in contrast does not require physical memory, hence, even a file with several hundred GB may be used.
 Note that the preprocessor macro WITH_MMAP must be defined at compile time to compile libhpxml with mmap() support. If it was not compiled with WITH_MMAP, hpx_init() will fail, in which case NULL is returned and errno is set to EINVAL.
-*Supporting Functions*
+
+### Supporting Functions
 
 While parsing an XML file libhpxml returns pointers to the elements and attributes. C strings are usually '\0'-terminated but this is not applicable here because it would require that '\0' characters are inserted after each element, resulting in huge data movement. Thus, libhpxml uses "B strings" which are hold in the bstring_t structure. The structure contains a pointer to the string and its length. Additionally, a set of function is provided to handle those strings.
 
@@ -40,11 +46,13 @@ While parsing an XML file libhpxml returns pointers to the elements and attribut
    } bstring_t;
 ```
 
-*Processing Elements*
+### Processing Elements
 
 After initializing the control structure, XML elements are subsequently retrieved by repeated calls to hpx_get_elem().
 
+```
    int hpx_get_elem(hpx_ctrl_t *ctl, bstring_t *b, int *in_tag, size_t *lno);
+```
 
 The function processes the buffer and fills out the bstring pointing to the next XML element. ctl is the pointer to control structure. in_tag is filled with either 0 or 1, either if the XML element is a tag (<...>) or if it is literal text between tags. lno is filled with the line number at which this element starts. Both, in_tag and lno may be NULL if it is not used. hpx_get_elem() returns the length of the bstring, 0 on EOF, and -1 in case of error. Such an element can now be parsed with a call to hpx_process_elem().
 
@@ -81,8 +89,10 @@ HPX_ATT	Declarations.	<! ..... >
 HPX_INSTR	Instructions.	<? .... ?>
 HPX_COMMENT	Comments.	<!-- .... -->
 
+```
    hpx_tag_t *hpx_tm_create(int n);
    void hpx_tm_free(hpx_tag_t *t);
+```
 
 The tag structure further contains an array of attributes. The member nattr contains the actual number of attributes parsed. It is always at most mattr elements. If an XML tag has more than mattr elements they are just ignored. At the current version there's no feedback to the calling function. This will be improved in future releases. The attributes themselves are stored each in an hpx_attr_t structure. It contains two bstrings, one for the name and one for the value of the attribute. The third member delim keeps the delimiter of the value which is either '\'' (single quote, 0x27) or '"' (double quote, 0x22).
 Example
@@ -138,13 +148,16 @@ int main(int argc, char *argv[])
 ```
  
 
-*Bugs and Caveats*
+Bugs and Caveats
+----------------
 
 libhpxml does not validate the XML file using e.g. DTD. Thus, it does not care about semantic errors. Syntactical ones of course are reported. In the current version, libhpxml is not thread-safe. The interface to the functions may change because it is in early development. The array of attributes within the hpx_tag_t structure has a static size and is not resized if an XML tag has more attributes as array entries are available. Currently, hpx_process_elem() does not report if the number of attributes would exceed the array (of course, it does not exhaust it).
 Author
 
 libhpxml is developed and maintained by Bernhard R. Fischer, 2048R/5C5FFD47 <bf@abenteuerland.at>.
 Latest update 2012/01/09.
+
 License
+-------
 
 libhpxml is released under GNU GPLv3.
