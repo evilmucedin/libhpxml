@@ -25,4 +25,9 @@ public:
     {
         return m_lno;
     }
+
+    long GetTotal() const 
+    {
+        return m_ctl->total;
+    }
 };

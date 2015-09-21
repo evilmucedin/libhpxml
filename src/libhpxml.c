@@ -464,6 +464,7 @@ hpx_ctrl_t* hpx_init(int fd, long len)
    ctl->buf.buf = (char*) (ctl + 1);
    ctl->len = len;
    ctl->empty = 1;
+   ctl->total = 0;
 
    return ctl;
 }
@@ -544,6 +545,8 @@ long hpx_get_eleml(hpx_ctrl_t *ctl, bstringl_t *b, int *in_tag, long *lno)
 
             if (!s)
                ctl->eof = 1;
+            
+            ctl->total += s;
 
             // adjust position pointers
             ctl->buf.len += s;

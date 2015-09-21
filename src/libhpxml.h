@@ -58,6 +58,8 @@ typedef struct hpx_ctrl
    long pg_siz;
    //! length of advised region (multiple of sysconf(_SC_PAGESIZE))
    long pg_blk_siz;
+   //! total current position;
+   long total;
 } hpx_ctrl_t;
 
 typedef struct hpx_attr
