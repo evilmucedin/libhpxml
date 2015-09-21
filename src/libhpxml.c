@@ -55,10 +55,10 @@ void hpx_tm_free(hpx_tag_t *t)
 }
 
 
-hpx_tag_t *hpx_tm_create(int n)
+hpx_tag_t* hpx_tm_create(int n)
 {
-   hpx_tag_t *t;
-   if ((t = malloc(sizeof(hpx_tag_t) + n * sizeof(hpx_attr_t))) == NULL)
+   hpx_tag_t* t;
+   if ((t = (hpx_tag_t*)malloc(sizeof(hpx_tag_t) + n * sizeof(hpx_attr_t))) == NULL)
       return NULL;
    t->mattr = n;
    return t;
@@ -423,11 +423,11 @@ int hpx_buf_reader(int fd, char *buf, int buflen)
  *  called with negative len parameter, NULL is returned and errno is set to
  *  EINVAL.
  */
-hpx_ctrl_t *hpx_init(int fd, long len)
+hpx_ctrl_t* hpx_init(int fd, long len)
 {
-   hpx_ctrl_t *ctl;
+   hpx_ctrl_t* ctl;
 
-   if ((ctl = malloc(sizeof(*ctl) + (len < 0 ? 0 : len))) == NULL)
+   if ((ctl = (hpx_ctrl_t*)malloc(sizeof(*ctl) + (len < 0 ? 0 : len))) == NULL)
       return NULL;
 
    memset(ctl, 0, sizeof(*ctl));
@@ -439,7 +439,7 @@ hpx_ctrl_t *hpx_init(int fd, long len)
    {
 #ifdef WITH_MMAP
       ctl->len = ctl->buf.len = -len;
-      if ((ctl->buf.buf = mmap(NULL, ctl->len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, fd, 0)) == MAP_FAILED)
+      if ((ctl->buf.buf = (char*)mmap(NULL, ctl->len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, fd, 0)) == MAP_FAILED)
       {
          free(ctl);
          return NULL;
@@ -612,7 +612,7 @@ int hpx_fprintf_attr(FILE *f, const hpx_attr_t *a, const char *lead)
 int hpx_fprintf_tag(FILE *f, const hpx_tag_t *p)
 {
    int i, n;
-   char *s = "";
+   const char* s = "";
 
    switch (p->type)
    {
@@ -643,20 +643,20 @@ int hpx_fprintf_tag(FILE *f, const hpx_tag_t *p)
  */
 int hpx_tree_resize(hpx_tree_t **tl, int n)
 {
-   int m;
-   hpx_tree_t *t;
+    int m;
+    hpx_tree_t* t;
 
-   m = *tl == NULL ? 0 : (*tl)->msub;
+    m = *tl == NULL ? 0 : (*tl)->msub;
 
-   if ((t = realloc(*tl, sizeof(hpx_tree_t) + (m + n)  * sizeof(hpx_tag_t*))) == NULL)
-      return -1;
+    if ((t = (hpx_tree_t*)realloc(*tl, sizeof(hpx_tree_t) + (m + n)  * sizeof(hpx_tag_t*))) == NULL)
+        return -1;
 
-  t->msub = n + m;
-   *tl = t;
+    t->msub = n + m;
+    *tl = t;
 
-   for (; m < t->msub; m++)
-      (*tl)->subtag[m] = NULL;
+    for (; m < t->msub; m++)
+        (*tl)->subtag[m] = NULL;
  
-   return t->msub;
+    return t->msub;
 }
 

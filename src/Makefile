@@ -15,18 +15,31 @@
 # * along with libhpxml. If not, see <http://www.gnu.org/licenses/>.
 # */
 
-CC			= gcc
-CFLAGS	= -Wall -DWITH_MMAP
+CC	 	  = gcc
+CFLAGS	  = -Wall -DWITH_MMAP
+CPPP      = g++
+CPPPFLAGS = -O3 -std=c++0x -c -Wall -DWITH_MMAP
+
+all: libhpxml.a libhpxml++.a
 
 libhpxml.a: libhpxml.o bstring.o
 	ar cr libhpxml.a libhpxml.o bstring.o
 
+libhpxml++.a: libhpxml++.o bstring++.o
+	ar cr libhpxml++.a libhpxml++.o bstring++.o
+
 bstring.o: bstring.c bstring.h
+
+bstring++.o: bstring.c bstring.h
+	$(CPPP) $(CPPPFLAGS) bstring.c -o bstring++.o
 
 libhpxml.o: libhpxml.c libhpxml.h bstring.h
 
+libhpxml++.o: libhpxml.c libhpxml.h bstring.h
+	$(CPPP) $(CPPPFLAGS) libhpxml.c -o libhpxml++.o
+
 clean:
-	rm -f *.o libhpxml.a
+	rm -f *.o libhpxml.a libhpxml++.a
 
 .PHONY: clean
 

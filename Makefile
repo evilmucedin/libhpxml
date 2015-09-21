@@ -14,24 +14,36 @@
 # * You should have received a copy of the GNU General Public License
 # * along with libhpxml. If not, see <http://www.gnu.org/licenses/>.
 # */
+ 
+CC       = gcc
+CFLAGS	 = -Wall -Isrc
+GITVER	 = $(shell git log --pretty="format:%h" -n1 HEAD)
+DISTDST	 = libhpxml-r$(GITVER)
+CPPP      = g++
+CPPPFLAGS = -O3 -std=c++0x -c -Wall -Isrc
 
-CC			= gcc
-CFLAGS	= -Wall -Isrc
-SVNVER	= $(shell svnversion | tr -d -c '[:digit:]')
-DISTDST	= libhpxml-r$(SVNVER)
-
-all: example
+all: example example++
 
 example: example.o libhpxml.a
 
 example.o: example.c
 
+example++: example++.o libhpxml++.a
+
+example++.o: example.cpp
+	$(CPPP) $(CPPPFLAGS) example.cpp -o example++.o
+
 libhpxml.a:
 	make -C src
 	cp src/libhpxml.a .
 
+libhpxml++.a:
+	make -C src
+	cp src/libhpxml++.a .
+
 clean:
-	rm -f libhpxml.a
+	rm -f libhpxml.a libhpxml++.a
+	rm *.o
 	make -C src clean
 
 dist:
