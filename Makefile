@@ -29,6 +29,7 @@ example: example.o libhpxml.a
 example.o: example.c
 
 example++: example++.o libhpxml++.a
+	$(CPPP) example++.o libhpxml++.a -lstdc++ -static -o example++
 
 example++.o: example.cpp
 	$(CPPP) $(CPPPFLAGS) example.cpp -o example++.o

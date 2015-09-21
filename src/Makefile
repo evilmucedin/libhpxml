@@ -25,13 +25,16 @@ all: libhpxml.a libhpxml++.a
 libhpxml.a: libhpxml.o bstring.o
 	ar cr libhpxml.a libhpxml.o bstring.o
 
-libhpxml++.a: libhpxml++.o bstring++.o
-	ar cr libhpxml++.a libhpxml++.o bstring++.o
+libhpxml++.a: libhpxml++.o bstring++.o hpXmlWrapper++.o
+	ar cr libhpxml++.a libhpxml++.o bstring++.o hpXmlWrapper++.o
 
 bstring.o: bstring.c bstring.h
 
 bstring++.o: bstring.c bstring.h
 	$(CPPP) $(CPPPFLAGS) bstring.c -o bstring++.o
+
+hpXmlWrapper++.o: hpXmlWrapper.cpp bstring.h libhpxml.h
+	$(CPPP) $(CPPPFLAGS) hpXmlWrapper.cpp -o hpXmlWrapper++.o
 
 libhpxml.o: libhpxml.c libhpxml.h bstring.h
 
